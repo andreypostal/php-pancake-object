@@ -60,6 +60,7 @@ class MyObject {
     #[Item(key: 'custom_name')]
     public string $name;
     #[SkipItem]
+    public string $ignoredProperty;
 }
 ```
 
