@@ -94,13 +94,13 @@ Also, if you have a property that is an array of other object, you can inform th
 This will work as a hint so the hydrator can instantiate the appropriate object. This works with enums as well.
 
 ```php
-use \Andrey\PancakeObject\JsonItemAttribute;
+use \Andrey\PancakeObject\Item;
 use \MyNamespace\MyOtherObj;
 
 // { "list": [ { "key": "value" } ] }
 class MyObject {
     /** @var MyOtherObj[] */
-    #[JsonItemAttribute(type: MyOtherObj::class)]
+    #[Item(type: MyOtherObj::class)]
     public array $list;
 }
 ```
