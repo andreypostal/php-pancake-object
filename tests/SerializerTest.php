@@ -31,6 +31,7 @@ final class SerializerTest extends TestCase
         $this->assertArrayHasKey('int', $arr);
         $this->assertArrayHasKey('float', $arr);
         $this->assertArrayHasKey('bool', $arr);
+        $this->assertArrayHasKey('item_name', $arr);
 
         $this->assertIsBool($arr['bool']);
         $this->assertTrue($arr['bool']);
@@ -43,5 +44,8 @@ final class SerializerTest extends TestCase
 
         $this->assertIsString($arr['string']);
         $this->assertEquals('string', $arr['string']);
+
+        $this->assertIsString($arr['item_name']);
+        $this->assertEquals('Item name', $arr['item_name']);
     }
 }

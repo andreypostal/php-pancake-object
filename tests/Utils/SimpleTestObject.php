@@ -15,11 +15,15 @@ readonly class SimpleTestObject
     #[Item]
     public bool $bool;
 
+    #[Item]
+    public string $itemName;
+
     public function __construct()
     {
         $this->string = 'string';
         $this->int = 1;
         $this->float = 1.2;
         $this->bool = true;
+        $this->itemName = 'Item name';
     }
 }

@@ -37,7 +37,7 @@ readonly class SimpleHydrator implements HydratorInterface
      */
     private function processClass(ReflectionClass $class, array $data): object
     {
-        $instance = $class->newInstance();
+        $instance = $class->newInstanceWithoutConstructor();
         $skipAttributeCheck = ($class->getAttributes(ValueObject::class)[0] ?? null) !== null;
 
         $properties = $class->getProperties();

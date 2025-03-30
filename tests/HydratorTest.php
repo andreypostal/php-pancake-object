@@ -23,13 +23,16 @@ final class HydratorTest extends TestCase
             'int' => 10,
             'float' => 3.14,
             'bool' => false,
+            'item_name' => 'Different name',
         ];
 
         $hydrator = new SimpleHydrator();
 
+        /** @var SimpleTestObject $obj */
         $obj = $hydrator->hydrate($data, SimpleTestObject::class);
 
         $this->assertEquals('str', $obj->string);
+        $this->assertEquals('Different name', $obj->itemName);
         $this->assertEquals(10, $obj->int);
         $this->assertEquals(3.14, $obj->float);
         $this->assertFalse($obj->bool);
