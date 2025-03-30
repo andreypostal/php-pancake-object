@@ -76,8 +76,13 @@ readonly class SimpleHydrator implements HydratorInterface
         $key = $item->key ?? $this->keyStrategy->from($property->getName());
 
         // Simple validation for required items
-        if ($item->required && !array_key_exists($key, $jsonArr)) {
+        $arrKeyExists = array_key_exists($key, $jsonArr);
+        if ($item->required && !$arrKeyExists) {
             throw new InvalidArgumentException(sprintf('required item <%s> not found', $key));
+        }
+
+        if (!$arrKeyExists) {
+            return null;
         }
 
         if ($property->getType()?->isBuiltin()) {
