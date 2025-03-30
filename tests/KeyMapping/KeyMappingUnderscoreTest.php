@@ -2,10 +2,10 @@
 namespace KeyMapping;
 
 use Andrey\PancakeObject\KeyMapping\KeyMappingUnderscore;
-use PHPUnit\Framework\Attributes\CoversTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversTrait(KeyMappingUnderscore::class)]
+#[CoversClass(KeyMappingUnderscore::class)]
 final class KeyMappingUnderscoreTest extends TestCase
 {
     public function testFromKey(): void
