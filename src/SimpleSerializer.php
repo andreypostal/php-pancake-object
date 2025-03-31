@@ -80,21 +80,19 @@ readonly class SimpleSerializer implements SerializerInterface
             return $value;
         }
 
-        if (!class_exists($item->type)) {
-            throw new LogicException(sprintf('expected array with items of type <%s> but found <%s>', $item->type, gettype($value)));
-        }
-
-        $class = new ReflectionClass($item->type);
-        $isEnum = $class->isEnum();
+        $isBuiltin = !class_exists($item->type);
+        $isEnum = !$isBuiltin && (new ReflectionClass($item->type))->isEnum();
 
         return array_reduce(
             array: $value,
-            callback: function(array $l, mixed $c) use ($isEnum): array {
+            callback: function(array $l, mixed $c) use ($isEnum, $isBuiltin): array {
+                $v = $c;
                 if ($isEnum) {
                     $v = $c->value;
-                } else {
+                } else if (!$isBuiltin) {
                     $v = $this->serialize($c);
                 }
+
                 $l[] = $v;
                 return $l;
             },
