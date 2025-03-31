@@ -1,6 +1,6 @@
 # 🥞 Pancake Object
 
-[![Coverage Status](https://coveralls.io/repos/github/andreypostal/php-pancake-object/badge.svg?branch=main)](https://coveralls.io/github/andreypostal/php-pancake-object?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/andreypostal/php-pancake-object/badge.svg?branch=main&t=1)](https://coveralls.io/github/andreypostal/php-pancake-object?branch=main)
 
 Light and simple helper to work with value objects by providing a serializer and hydrator using PHP Attributes.
 It also provides a set of interfaces that allow you to customize the lib behavior to your needs.
