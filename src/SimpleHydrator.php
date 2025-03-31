@@ -61,7 +61,7 @@ readonly class SimpleHydrator implements HydratorInterface
     /**
      * @throws ReflectionException
      */
-    private function processProperty(ReflectionProperty $property, array $jsonArr, bool $skipAttributeCheck): Payload
+    private function processProperty(ReflectionProperty $property, array $data, bool $skipAttributeCheck): Payload
     {
         // Check if property has ItemAttribute
         $attributes = $property->getAttributes(Item::class);
@@ -83,7 +83,7 @@ readonly class SimpleHydrator implements HydratorInterface
         $key = $item->key ?? $this->keyStrategy->from($property->getName());
 
         // Simple validation for required items
-        $arrKeyExists = array_key_exists($key, $jsonArr);
+        $arrKeyExists = array_key_exists($key, $data);
         if ($item->required && !$arrKeyExists) {
             return new Payload(error: new InvalidArgumentException(sprintf('required item <%s> not found', $key)));
         }
@@ -93,11 +93,11 @@ readonly class SimpleHydrator implements HydratorInterface
         }
 
         if ($property->getType()?->isBuiltin()) {
-            return $this->handleBuiltin($jsonArr, $key, $property, $item);
+            return $this->handleBuiltin($data, $key, $property, $item);
         }
 
         // Enum or a child/internal value object
-        return $this->handleCustomType($jsonArr[$key], $property->getType()?->getName());
+        return $this->handleCustomType($data[$key], $property->getType()?->getName());
     }
 
     /**
@@ -111,7 +111,7 @@ readonly class SimpleHydrator implements HydratorInterface
             $classExists = class_exists($item->type);
             foreach ($data[$key] ?? [] as $k => $v) {
                 $value = $v;
-                if ($classExists) {
+                if ($classExists && gettype($v) === 'array') {
                     $payload = $this->handleCustomType($value, $item->type);
 
                     if ($payload->skipped) {
@@ -123,11 +123,12 @@ readonly class SimpleHydrator implements HydratorInterface
                     }
 
                     $value = $payload->data;
-                } elseif (gettype($v) !== $item->type) {
+                } else if ($classExists || gettype($v) !== $item->type) {
                     return new Payload(
                         error: new LogicException(sprintf('expected array with items of type <%s> but found <%s>', $item->type, gettype($v))),
                     );
                 }
+
                 $output[$k] = $value;
             }
             return new Payload(data: $output);

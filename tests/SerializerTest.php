@@ -5,6 +5,7 @@ use Andrey\PancakeObject\Attributes\ValueObject;
 use Andrey\PancakeObject\SimpleSerializer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Utils\ImEnum;
 use Utils\TestObject;
 
 #[CoversClass(Item::class)]
@@ -63,5 +64,8 @@ final class SerializerTest extends TestCase
         $this->assertSame("no2", $data["array_of_children"][1]["different_one"]);
         $this->assertIsArray($data["array_of_children"][1]["and_im_an_array_of_int"]);
         $this->assertSame([1, 2, 3], $data["array_of_children"][1]["and_im_an_array_of_int"]);
+
+        $this->assertEquals(ImEnum::A->value, $data['enum']);
+        $this->assertSame([ImEnum::A->value, ImEnum::A->value], $data['enum_arr']);
     }
 }

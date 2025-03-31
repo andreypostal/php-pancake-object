@@ -1,9 +1,12 @@
-<?php
+<?php /** @noinspection PhpUnitAnnotationToAttributeInspection */
 
 namespace Andrey\PancakeObject;
 
 use Throwable;
 
+/**
+ * @codeCoverageIgnore
+ */
 readonly class Payload
 {
     public function __construct(

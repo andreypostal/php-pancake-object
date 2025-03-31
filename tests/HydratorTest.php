@@ -1,17 +1,19 @@
 <?php
 
+use Andrey\PancakeObject\Attributes\SkipItem;
 use Andrey\PancakeObject\Attributes\ValueObject;
 use Andrey\PancakeObject\Attributes\Item;
+use Andrey\PancakeObject\Payload;
 use Andrey\PancakeObject\SimpleHydrator;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
-use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\TestCase;
 use Utils\ChildObject;
 use Utils\TestObject;
 
 #[CoversClass(Item::class)]
 #[CoversClass(ValueObject::class)]
+#[CoversClass(SkipItem::class)]
+#[CoversClass(Payload::class)]
 #[CoversClass(SimpleHydrator::class)]
 final class HydratorTest extends TestCase
 {
@@ -27,6 +29,7 @@ final class HydratorTest extends TestCase
             'bool' => false,
             'missing_required' => 'Im here',
             'item_name' => 'Different name',
+            'enum' => 'B',
             'single_child' => [
                 'i_have_a_name' => 'this is the name',
                 'different_one' => 'other one',
@@ -50,6 +53,8 @@ final class HydratorTest extends TestCase
 
         /** @var TestObject $obj */
         $obj = $hydrator->hydrate($data, TestObject::class);
+
+        $this->assertEquals(Utils\ImEnum::A, $obj->enum);
 
         $this->assertEquals('str', $obj->string);
         $this->assertEquals('Different name', $obj->itemName);
@@ -91,6 +96,66 @@ final class HydratorTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('required item <missing_required> not found');
+        $hydrator->hydrate($data, TestObject::class);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testOnlyRequiredItem(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        $data = [
+            'missing_required' => 'Im here',
+        ];
+
+        $hydrator = new SimpleHydrator();
+        $hydrator->hydrate($data, TestObject::class);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testArrayWithWrongValues(): void
+    {
+        $data = [
+            'missing_required' => 'Im here',
+            'single_child' => [
+                'i_have_a_name' => 'this is the name',
+                'different_one' => 'other one',
+                'and_im_an_array_of_int' => [ 0, '1'],
+            ],
+        ];
+
+        $hydrator = new SimpleHydrator();
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('expected array with items of type <integer> but found <string>');
+        $hydrator->hydrate($data, TestObject::class);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testArrayWithWrongValuesWithChild(): void
+    {
+        $data = [
+            'missing_required' => 'Im here',
+            'array_of_children' => [
+                [
+                    'i_have_a_name' => 'c1',
+                    'different_one' => 'o1',
+                    'and_im_an_array_of_int' => [ 3, 4, 5],
+                ],
+                'mixed-value',
+            ],
+        ];
+
+        $hydrator = new SimpleHydrator();
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('expected array with items of type <Utils\ChildObject> but found <string>');
         $hydrator->hydrate($data, TestObject::class);
     }
 }

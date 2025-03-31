@@ -49,6 +49,11 @@ readonly class SimpleSerializer implements SerializerInterface
             // If the item specific set a key to the property, then we use it, otherwise convert it using the strategy
             $key = $item->key ?? $this->keyStrategy->from($property->name);
 
+            // Simple validation for required items
+            if (!$item->required && !isset($obj->{$property->name})) {
+                continue;
+            }
+
             if ($property->getType()?->isBuiltin()) {
                 $output[$key] = $this->handlePossibleArray($item, $property->getValue($obj));
                 continue;
