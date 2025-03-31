@@ -1,4 +1,4 @@
 <?php
 
 require_once __DIR__.'/../vendor/autoload.php';
-require_once __DIR__ . '/Utils/SimpleTestObject.php';
+require_once __DIR__ . '/Utils/TestObject.php';

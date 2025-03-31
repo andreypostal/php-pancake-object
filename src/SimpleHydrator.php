@@ -42,10 +42,17 @@ readonly class SimpleHydrator implements HydratorInterface
 
         $properties = $class->getProperties();
         foreach ($properties as $property) {
-            $value = $this->processProperty($property, $data, $skipAttributeCheck);
-            if ($value !== null) {
-                $property->setValue($instance, $value);
+            $payload = $this->processProperty($property, $data, $skipAttributeCheck);
+
+            if ($payload->skipped) {
+                continue;
             }
+
+            if ($payload->error !== null) {
+                throw $payload->error;
+            }
+
+            $property->setValue($instance, $payload->data);
         }
 
         return $instance;
@@ -54,7 +61,7 @@ readonly class SimpleHydrator implements HydratorInterface
     /**
      * @throws ReflectionException
      */
-    private function processProperty(ReflectionProperty $property, array $jsonArr, bool $skipAttributeCheck): mixed
+    private function processProperty(ReflectionProperty $property, array $jsonArr, bool $skipAttributeCheck): Payload
     {
         // Check if property has ItemAttribute
         $attributes = $property->getAttributes(Item::class);
@@ -66,7 +73,7 @@ readonly class SimpleHydrator implements HydratorInterface
 
         // We do not touch this property in this case
         if ($hasSkipAttribute || ($attr === null && !$skipAttributeCheck)) {
-            return null;
+            return new Payload(skipped: true);
         }
 
         /** @var Item $item we set to an empty new item, means that it has ValueObject attribute */
@@ -78,11 +85,11 @@ readonly class SimpleHydrator implements HydratorInterface
         // Simple validation for required items
         $arrKeyExists = array_key_exists($key, $jsonArr);
         if ($item->required && !$arrKeyExists) {
-            throw new InvalidArgumentException(sprintf('required item <%s> not found', $key));
+            return new Payload(error: new InvalidArgumentException(sprintf('required item <%s> not found', $key)));
         }
 
         if (!$arrKeyExists) {
-            return null;
+            return $this->buildNullableResponse($property, null);
         }
 
         if ($property->getType()?->isBuiltin()) {
@@ -96,7 +103,7 @@ readonly class SimpleHydrator implements HydratorInterface
     /**
      * @throws ReflectionException
      */
-    private function handleBuiltin(array $data, string $key, ReflectionProperty $property, Item $item): mixed
+    private function handleBuiltin(array $data, string $key, ReflectionProperty $property, Item $item): Payload
     {
         // If we define a type in the attribute and the property is an array, we perform simple type validation
         if ($item->type !== null && $property->getType()?->getName() === 'array') {
@@ -105,17 +112,29 @@ readonly class SimpleHydrator implements HydratorInterface
             foreach ($data[$key] ?? [] as $k => $v) {
                 $value = $v;
                 if ($classExists) {
-                    $value = $this->handleCustomType($value, $item->type);
+                    $payload = $this->handleCustomType($value, $item->type);
+
+                    if ($payload->skipped) {
+                        continue;
+                    }
+
+                    if ($payload->error !== null) {
+                        return $payload;
+                    }
+
+                    $value = $payload->data;
                 } elseif (gettype($v) !== $item->type) {
-                    throw new LogicException(sprintf('expected array with items of type <%s> but found <%s>', $item->type, gettype($v)));
+                    return new Payload(
+                        error: new LogicException(sprintf('expected array with items of type <%s> but found <%s>', $item->type, gettype($v))),
+                    );
                 }
                 $output[$k] = $value;
             }
-            return $output;
+            return new Payload(data: $output);
         }
 
         // If no data is set, returns null which will be ignored by the set value, falling back to undefined or default value
-        return $data[$key] ?? null;
+        return $this->buildNullableResponse($property, $data[$key] ?? null);
     }
 
     /**
@@ -125,13 +144,21 @@ readonly class SimpleHydrator implements HydratorInterface
     {
         $typeReflection = new ReflectionClass($type);
         if ($typeReflection->isEnum()) {
-            return call_user_func($type.'::tryFrom', $value);
+            return new Payload(data: call_user_func($type.'::tryFrom', $value));
         }
 
         // Recursively hydrate child/internal value objects
-        return $this->hydrate(
+        return new Payload(data: $this->hydrate(
             data: $value,
             class: $type,
-        );
+        ));
+    }
+
+    private function buildNullableResponse(ReflectionProperty $property, mixed $value): Payload
+    {
+        if ($value !== null || $property->getType()->allowsNull()) {
+            return new Payload(data: $value);
+        }
+        return new Payload(skipped: true);
     }
 }

@@ -5,10 +5,11 @@ use Andrey\PancakeObject\Attributes\ValueObject;
 use Andrey\PancakeObject\SimpleSerializer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Utils\SimpleTestObject;
+use Utils\TestObject;
 
 #[CoversClass(Item::class)]
 #[CoversClass(ValueObject::class)]
+#[CoversClass(SimpleSerializer::class)]
 final class SerializerTest extends TestCase
 {
     /**
@@ -16,36 +17,51 @@ final class SerializerTest extends TestCase
      */
     public function testSimpleSerialize(): void
     {
-        $this->assertSimpleSerializedObject(new SimpleTestObject());
-    }
-
-    /**
-     * @throws ReflectionException
-     */
-    private function assertSimpleSerializedObject(object $obj): void
-    {
         $serializer = new SimpleSerializer();
-        $arr = $serializer->serialize($obj);
+        $data = $serializer->serialize(new TestObject());
 
-        $this->assertArrayHasKey('string', $arr);
-        $this->assertArrayHasKey('int', $arr);
-        $this->assertArrayHasKey('float', $arr);
-        $this->assertArrayHasKey('bool', $arr);
-        $this->assertArrayHasKey('item_name', $arr);
+        $this->assertIsString($data["string"]);
+        $this->assertSame("string", $data["string"]);
 
-        $this->assertIsBool($arr['bool']);
-        $this->assertTrue($arr['bool']);
+        $this->assertIsInt($data["int"]);
+        $this->assertSame(1, $data["int"]);
 
-        $this->assertIsInt($arr['int']);
-        $this->assertEquals(1, $arr['int']);
+        $this->assertIsFloat($data["float"]);
+        $this->assertSame(1.2, $data["float"]);
 
-        $this->assertIsFloat($arr['float']);
-        $this->assertEquals(1.2, $arr['float']);
+        $this->assertIsBool($data["bool"]);
+        $this->assertTrue($data["bool"]);
 
-        $this->assertIsString($arr['string']);
-        $this->assertEquals('string', $arr['string']);
+        $this->assertIsString($data["item_name"]);
+        $this->assertSame("Item name", $data["item_name"]);
 
-        $this->assertIsString($arr['item_name']);
-        $this->assertEquals('Item name', $arr['item_name']);
+        $this->assertIsString($data["missing_required"]);
+        $this->assertSame("im here", $data["missing_required"]);
+
+        $this->assertIsArray($data["single_child"]);
+        $this->assertArrayHasKey("i_have_a_name", $data["single_child"]);
+        $this->assertSame("child", $data["single_child"]["i_have_a_name"]);
+
+        $this->assertArrayHasKey("different_one", $data["single_child"]);
+        $this->assertSame("other n", $data["single_child"]["different_one"]);
+
+        $this->assertArrayHasKey("and_im_an_array_of_int", $data["single_child"]);
+        $this->assertIsArray($data["single_child"]["and_im_an_array_of_int"]);
+        $this->assertSame([4, 5, 6], $data["single_child"]["and_im_an_array_of_int"]);
+
+        $this->assertNull($data["nullable_int"]);
+
+        $this->assertIsArray($data["array_of_children"]);
+        $this->assertCount(2, $data["array_of_children"]);
+
+        $this->assertSame("n1", $data["array_of_children"][0]["i_have_a_name"]);
+        $this->assertSame("no1", $data["array_of_children"][0]["different_one"]);
+        $this->assertIsArray($data["array_of_children"][0]["and_im_an_array_of_int"]);
+        $this->assertEmpty($data["array_of_children"][0]["and_im_an_array_of_int"]);
+
+        $this->assertSame("n2", $data["array_of_children"][1]["i_have_a_name"]);
+        $this->assertSame("no2", $data["array_of_children"][1]["different_one"]);
+        $this->assertIsArray($data["array_of_children"][1]["and_im_an_array_of_int"]);
+        $this->assertSame([1, 2, 3], $data["array_of_children"][1]["and_im_an_array_of_int"]);
     }
 }
