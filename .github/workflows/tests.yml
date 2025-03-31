@@ -1,0 +1,48 @@
+name: "Tests"
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: "Package Tests"
+    runs-on: ubuntu-22.04
+    continue-on-error: false
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 100
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          ini-values: "memory_limit=-1,display_errors=1"
+          php-version: "8.3"
+          coverage: "pcov"
+
+      - name: "Install Dependencies"
+        run: "composer install"
+
+      - name: "Run Tests"
+        run: "vendor/bin/phpunit --coverage-clover /tmp/${{ github.sha }}_coverage.xml"
+
+      - uses: "actions/upload-artifact@v4"
+        with:
+          name: "tests_coverage"
+          path: "/tmp/${{ github.sha }}_coverage.xml"
+          retention-days: 1
+
+      - name: "Coveralls"
+        uses: "coverallsapp/github-action@v2"
+        with:
+          github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          file: "/tmp/${{ github.sha }}_coverage.xml"
