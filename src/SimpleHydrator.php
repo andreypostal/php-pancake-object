@@ -89,7 +89,7 @@ readonly class SimpleHydrator implements HydratorInterface
         }
 
         if (!$arrKeyExists) {
-            return $this->buildNullableResponse($property, null);
+            return $this->buildNullableResponse($property, $item->default);
         }
 
         if ($property->getType()?->isBuiltin()) {
@@ -134,7 +134,7 @@ readonly class SimpleHydrator implements HydratorInterface
             return new Payload(data: $output);
         }
 
-        // If no data is set, returns null which will be ignored by the set value, falling back to undefined or default value
+        // If no data is set, return null, which will be ignored by the set value, falling back to undefined or default value
         return $this->buildNullableResponse($property, $data[$key] ?? null);
     }
 

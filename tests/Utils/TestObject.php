@@ -44,13 +44,13 @@ readonly class TestObject
     #[Item(type: ImEnum::class)]
     public array $enumArr;
 
-    #[Item]
+    #[Item(default: 'default name')]
     public string $itemName;
 
     #[Item(required: true)]
     public string $missingRequired;
 
-    #[Item]
+    #[Item(default: new ChildObject('default child name', 'different one', []))]
     public ChildObject $singleChild;
 
     #[Item]

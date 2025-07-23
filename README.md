@@ -30,7 +30,7 @@ use \Andrey\PancakeObject\Attributes\Item;
 class MyObject {
     #[Item]
     public int $id;
-    #[Item]
+    #[Item(default: 'default name')]
     public string $name;
 }
 ```
@@ -109,6 +109,19 @@ class MyObject {
 ```
 
 The type option can be used to validate that all the items in an array have some desired type as well, like "string", "integer"...
+
+You can define a default value for an item using the "default" field when using the Item attribute:
+
+```php
+use \Andrey\PancakeObject\Attributes\Item;
+
+class MyObject {
+    #[Item]
+    public int $id;
+    #[Item(default: 'default name')]
+    public string $name;
+}
+```
 
 ### Hydrator and Serializer
 

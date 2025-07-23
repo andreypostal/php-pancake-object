@@ -158,4 +158,23 @@ final class HydratorTest extends TestCase
         $this->expectExceptionMessage('expected array with items of type <Utils\ChildObject> but found <string>');
         $hydrator->hydrate($data, TestObject::class);
     }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testDefaultValueFromItem(): void
+    {
+        $data = [
+            'missing_required' => 'Im here',
+        ];
+
+        $hydrator = new SimpleHydrator();
+        /** @var TestObject $object */
+        $object = $hydrator->hydrate($data, TestObject::class);
+
+        $this->assertEquals('default name', $object->itemName);
+        $this->assertEquals(ChildObject::class, $object->singleChild::class);
+        $this->assertCount(0, $object->singleChild->andImAnArrayOfInt);
+        $this->assertEquals('default child name', $object->singleChild->iHaveAName);
+    }
 }
