@@ -85,7 +85,7 @@ readonly class SimpleSerializer implements SerializerInterface
             return $value;
         }
 
-        $isBuiltin = !class_exists($item->type);
+        $isBuiltin = !$item->type || !class_exists($item->type);
         $isEnum = !$isBuiltin && (new ReflectionClass($item->type))->isEnum();
 
         return array_reduce(
