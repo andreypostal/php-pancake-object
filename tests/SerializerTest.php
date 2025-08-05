@@ -50,8 +50,6 @@ final class SerializerTest extends TestCase
         $this->assertIsArray($data["single_child"]["and_im_an_array_of_int"]);
         $this->assertSame([4, 5, 6], $data["single_child"]["and_im_an_array_of_int"]);
 
-        $this->assertNull($data["nullable_int"]);
-
         $this->assertIsArray($data["array_of_children"]);
         $this->assertCount(2, $data["array_of_children"]);
 

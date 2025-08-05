@@ -8,6 +8,8 @@
     processIsolation= "false"
     stopOnFailure="false"
     bootstrap = "tests/bootstrap.php"
+
+    displayDetailsOnTestsThatTriggerWarnings="true"
  >
     <testsuites>
         <testsuite name="Test Suite">
