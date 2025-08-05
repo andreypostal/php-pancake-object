@@ -4,6 +4,7 @@ namespace Andrey\PancakeObject;
 use Andrey\PancakeObject\Attributes\Item;
 use Andrey\PancakeObject\Attributes\SkipItem;
 use Andrey\PancakeObject\Attributes\ValueObject;
+use Andrey\PancakeObject\Exceptions\InvalidEnumValueException;
 use Andrey\PancakeObject\KeyMapping\KeyMappingStrategy;
 use Andrey\PancakeObject\KeyMapping\KeyMappingUnderscore;
 use InvalidArgumentException;
@@ -141,11 +142,16 @@ readonly class SimpleHydrator implements HydratorInterface
     /**
      * @throws ReflectionException
      */
-    private function handleCustomType(mixed $value, string $type): mixed
+    private function handleCustomType(mixed $value, string $type): Payload
     {
         $typeReflection = new ReflectionClass($type);
         if ($typeReflection->isEnum()) {
-            return new Payload(data: call_user_func($type.'::tryFrom', $value));
+            $data = call_user_func($type.'::tryFrom', $value);
+            $error = null;
+            if ($data === null) {
+                $error = new InvalidEnumValueException("Invalid enum value '{$value}' for type '{$type}'");
+            }
+            return new Payload(data: $data, error: $error);
         }
 
         // Recursively hydrate child/internal value objects

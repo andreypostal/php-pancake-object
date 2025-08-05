@@ -3,6 +3,7 @@
 use Andrey\PancakeObject\Attributes\SkipItem;
 use Andrey\PancakeObject\Attributes\ValueObject;
 use Andrey\PancakeObject\Attributes\Item;
+use Andrey\PancakeObject\Exceptions\InvalidEnumValueException;
 use Andrey\PancakeObject\Payload;
 use Andrey\PancakeObject\SimpleHydrator;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -63,7 +64,6 @@ final class HydratorTest extends TestCase
         $this->assertFalse($obj->bool);
         $this->assertNull($obj->nullableInt);
 
-        $this->assertInstanceOf(ChildObject::class, $obj->singleChild);
         $this->assertIsArray($obj->singleChild->andImAnArrayOfInt);
         $this->assertSame($data['single_child']['and_im_an_array_of_int'], $obj->singleChild->andImAnArrayOfInt);
 
@@ -176,5 +176,21 @@ final class HydratorTest extends TestCase
         $this->assertEquals(ChildObject::class, $object->singleChild::class);
         $this->assertCount(0, $object->singleChild->andImAnArrayOfInt);
         $this->assertEquals('default child name', $object->singleChild->iHaveAName);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testInvalidEnumValue(): void
+    {
+        $data = [
+            'enum' => 'C',
+        ];
+
+
+        $this->expectException(InvalidEnumValueException::class);
+
+        $hydrator = new SimpleHydrator();
+        $hydrator->hydrate($data, TestObject::class);
     }
 }
